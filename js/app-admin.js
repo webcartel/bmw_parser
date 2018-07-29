@@ -18,6 +18,7 @@ var bmw_parser_Admin = new Vue({
 				.then(function (response) {
 					console.log(response);
 					this.result = 'Готово'
+					// this.result = response.data
 				}.bind(this))
 				.catch(function (error) {
 					console.log(error);

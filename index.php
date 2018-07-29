@@ -10,6 +10,8 @@ Version: 1.0
 License: GPL2
 */
 
+set_time_limit(300);
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 define( 'WCST_PARSER_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );

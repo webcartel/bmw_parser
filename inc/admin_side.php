@@ -43,15 +43,27 @@ function bmw_parser_admin()
 }
 
 
+
+
+
+
 function parse_run()
 {
 	if ( !empty($_POST['url']) ) {
-		$html = file_get_contents($_POST['url']);
-		save_all_page_files($html);
-		upgrade_files_url($html);
-		upgrade_files_url($html);
-		create_page($html);
-		// echo json_encode($links[1]);
+		include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+		$start_page_html = file_get_html($_POST['url']);
+		$simple_menu_items = $start_page_html->find('.simple_menu', 1)->find('.simple_menu_a');
+
+		$url_parts_arr = parse_url($_POST['url']);
+
+		foreach ( $simple_menu_items as $simple_menu_item ) {
+			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href );
+			// save_all_page_files($html);
+			$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext);
+
+			// $urls[] = $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href;
+		}
+		echo json_encode($urls);
 		exit();
 	}
 	else {
@@ -100,16 +112,18 @@ function upgrade_files_url($html)
 }
 
 
-function create_page($html)
+function create_page($html, $slug, $page_title)
 {
 	global $wpdb;
 
-	preg_match_all('~<.*h3[^>]*>(.*)</h3>~Uis', $html, $title);
+	// preg_match_all('~<.*h3[^>]*>(.*)</h3>~Uis', $html, $title); // $title[1][0]
 
 	include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+	include_once(__DIR__.'/HtmlFormatter.php');
 	$html = str_get_html($html);
 	$main_wrap = $html->find(".main-wrap", 0);
 	$post_content = upgrade_files_url($main_wrap->outertext);
 
-	$wpdb->insert( 'wp_posts', array('post_title' => $title[1][0], 'post_name' => '8999', 'post_type' => 'page', 'post_content' => $post_content) );
+	// Mihaeu\HtmlFormatter::format($post_content)
+	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => $post_content) );
 }
