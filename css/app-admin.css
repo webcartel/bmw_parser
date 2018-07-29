@@ -1,0 +1,24 @@
+#wpbody {
+  position: static; }
+
+#wpfooter {
+  display: none; }
+
+.bmw_parser-admin input[name="url"] {
+  margin: 40px 0 0 0;
+  width: 100%;
+  max-width: 800px; }
+
+.bmw_parser-admin button {
+  display: block;
+  margin: 5px 0 0 0;
+  padding: 5px 25px;
+  min-width: 120px;
+  font: 400 16px/24px "Roboto", sans-serif;
+  color: #FFF;
+  border: none;
+  background: #9CC13D;
+  border-radius: 5px;
+  cursor: pointer; }
+  .bmw_parser-admin button:hover {
+    background: #88ad29; }
