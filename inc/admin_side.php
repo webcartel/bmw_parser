@@ -58,7 +58,7 @@ function parse_run()
 
 		foreach ( $simple_menu_items as $simple_menu_item ) {
 			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href );
-			// save_all_page_files($html);
+			save_all_page_files($html);
 			$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext);
 
 			// $urls[] = $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href;
@@ -97,15 +97,32 @@ function save_all_page_files($html)
 }
 
 
+function get_page_sctipts()
+{
+	
+}
+
+
 function upgrade_files_url($html)
 {
-	preg_match_all('~<.*img.*src="(.*)"[^>]>~Uis', $html, $images);
+	// preg_match_all('~<.*img.*src="(.*)"[^>]*>~Uis', $html, $images);
 
-	foreach ( $images[1] as $image_url ) {
-		$image_url_arr = parse_url($image_url);
+	// foreach ( $images[1] as $image_url ) {
+	// 	$image_url_arr = parse_url($image_url);
+	// 	$path_arr = pathinfo($image_url_arr['path']);
+	// 	$new_url = '/wp-content/uploads'.$path_arr['dirname'].'/'.$path_arr['basename'];
+	// 	$html = preg_replace('~"'.$image_url.'"~Uis', '"'.$new_url.'"', $html);
+	// }
+
+	include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+	$html = str_get_html($html);
+	$imgs = $html->find('img');
+
+	foreach ($imgs as $img) {
+		$image_url_arr = parse_url($img->src);
 		$path_arr = pathinfo($image_url_arr['path']);
 		$new_url = '/wp-content/uploads'.$path_arr['dirname'].'/'.$path_arr['basename'];
-		$html = preg_replace('~"'.$image_url.'"~Uis', '"'.$new_url.'"', $html);
+		$html = preg_replace('~"'.$img->src.'"~Uis', '"'.$new_url.'"', $html);
 	}
 
 	return $html;
@@ -125,5 +142,5 @@ function create_page($html, $slug, $page_title)
 	$post_content = upgrade_files_url($main_wrap->outertext);
 
 	// Mihaeu\HtmlFormatter::format($post_content)
-	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => $post_content) );
+	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content)) );
 }
