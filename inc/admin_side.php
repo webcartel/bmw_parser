@@ -58,8 +58,9 @@ function parse_run()
 
 		foreach ( $simple_menu_items as $simple_menu_item ) {
 			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href );
-			save_all_page_files($html);
-			$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext);
+			// save_all_page_files($html);
+			$page_sctipts = get_page_sctipts($html);
+			$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext, $page_sctipts);
 
 			// $urls[] = $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href;
 		}
@@ -97,9 +98,15 @@ function save_all_page_files($html)
 }
 
 
-function get_page_sctipts()
+function get_page_sctipts($html)
 {
-	
+	include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+	$html = str_get_html($html);
+	$scripts = $html->find('script');
+	foreach ($scripts as $script) {
+		$scripts_concat .= $script->outertext;
+	}
+	return $scripts_concat;
 }
 
 
@@ -129,7 +136,7 @@ function upgrade_files_url($html)
 }
 
 
-function create_page($html, $slug, $page_title)
+function create_page($html, $slug, $page_title, $page_sctipts)
 {
 	global $wpdb;
 
@@ -142,5 +149,5 @@ function create_page($html, $slug, $page_title)
 	$post_content = upgrade_files_url($main_wrap->outertext);
 
 	// Mihaeu\HtmlFormatter::format($post_content)
-	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content)) );
+	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );
 }
