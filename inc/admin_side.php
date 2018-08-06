@@ -104,7 +104,9 @@ function get_page_sctipts($html)
 	$html = str_get_html($html);
 	$scripts = $html->find('script');
 	foreach ($scripts as $script) {
-		$scripts_concat .= $script->outertext;
+		if ( $script->innertext ) {
+			$scripts_concat .= $script->outertext;
+		}
 	}
 	return $scripts_concat;
 }
