@@ -35,36 +35,80 @@ function bmw_parser_admin()
 {
 	echo '
 <div id="bmw_parser-admin" class="bmw_parser-admin">
-	<input type="text" name="url" placeholder="Model URL" v-model="url">
-	<button @click="sendUrl()">Parse</button>
-	{{ result }}
+	<input type="text" name="url" placeholder="URL модели" v-model="url">
+	<button @click="sendUrl()">Спарсить главную страницу модели</button>
+
+	<table v-if="pagesData != null">
+		<tr>
+			<td>Текст ссылки</td>
+			<td>href</td>
+		</tr>
+		<tr v-for="pageData in pagesData">
+			<td><input type="text" :placeholder="pageData.titlep" v-model="pageData.title"></td>
+			<td><input type="text" :placeholder="pageData.slugp" v-model="pageData.slug"></td>
+		</tr>
+	</table>
+	<button v-if="pagesData != null" @click="parseAll()">Спарсить все страницы</button>
 </div>
 ';
 }
 
 
 
+function pre_parse_run() {
+	if ( !empty($_POST['url']) ) {
+		include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+		$start_page_html = file_get_html($_POST['url']);
+		$simple_menu_items = $start_page_html->find('.simple_menu', 1)->find('.simple_menu_a');
+
+		$i = 0;
+		foreach ( $simple_menu_items as $simple_menu_item ) {
+			$data[$i]['title'] = $simple_menu_item->innertext;
+			$data[$i]['titlep'] = $simple_menu_item->innertext;
+			$data[$i]['slug'] = $simple_menu_item->href;
+			$data[$i]['slugp'] = $simple_menu_item->href;
+			$i++;
+		}
+
+		echo json_encode($data);
+		exit();
+	}
+}
+add_action( 'wp_ajax_pre_parse_run', 'pre_parse_run' );
 
 
 
 function parse_run()
 {
 	if ( !empty($_POST['url']) ) {
-		include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
-		$start_page_html = file_get_html($_POST['url']);
-		$simple_menu_items = $start_page_html->find('.simple_menu', 1)->find('.simple_menu_a');
+		// include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+		// $start_page_html = file_get_html($_POST['url']);
+		// $simple_menu_items = $start_page_html->find('.simple_menu', 1)->find('.simple_menu_a');
+
+		// $url_parts_arr = parse_url($_POST['url']);
+
+		// foreach ( $simple_menu_items as $simple_menu_item ) {
+		// 	$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href );
+		// 	save_all_page_files($html);
+		// 	$page_sctipts = get_page_sctipts($html);
+		// 	$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext, $page_sctipts);
+		// }
 
 		$url_parts_arr = parse_url($_POST['url']);
+		
+		$pages_data = json_decode( stripslashes( $_POST['pagesdata'] ) );
 
-		foreach ( $simple_menu_items as $simple_menu_item ) {
-			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href );
+		foreach ( $pages_data as $page_data ) {
+			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
 			// save_all_page_files($html);
 			$page_sctipts = get_page_sctipts($html);
-			$urls[] = create_page($html, $simple_menu_item->href, $simple_menu_item->innertext, $page_sctipts);
 
-			// $urls[] = $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$simple_menu_item->href;
+			if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) == $page_data->slug ) {
+				return create_page($html, $page_data->slug, $page_data->title, $page_sctipts);
+			}
 		}
-		echo json_encode($urls);
+
+
 		exit();
 	}
 	else {
@@ -151,5 +195,6 @@ function create_page($html, $slug, $page_title, $page_sctipts)
 	$post_content = upgrade_files_url($main_wrap->outertext);
 
 	// Mihaeu\HtmlFormatter::format($post_content)
-	return $wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );
+	$wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );
+	return $wpdb->insert_id;
 }

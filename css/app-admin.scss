@@ -59,4 +59,24 @@ $f1: 'Roboto', sans-serif;
 			background: #9CC13D - 20;
 		}
 	}
+
+	table {
+		margin: 50px 0 0 0;
+		width: 100%;
+		border-collapse: collapse;
+
+		tr {
+			td {
+				padding: 5px 10px 5px 0;
+
+				input {
+					width: 100%;
+
+					@include placeholder {
+						color: red;
+					}
+				}
+			}
+		}
+	}
 }

@@ -3,7 +3,7 @@ var bmw_parser_Admin = new Vue({
 
 	data: {
 		url: '',
-		result: '',
+		pagesData: null,
 	},
 
 	mounted: function() {
@@ -14,11 +14,23 @@ var bmw_parser_Admin = new Vue({
 		sendUrl() {
 			var form_data = new FormData
 			form_data.append('url', this.url)
+			axios.post(ajaxurl + '?action=pre_parse_run', form_data)
+				.then(function (response) {
+					console.log(response);
+					this.pagesData = Array.from(response.data)
+				}.bind(this))
+				.catch(function (error) {
+					console.log(error);
+				});
+		},
+
+		parseAll() {
+			var form_data = new FormData
+			form_data.append('url', this.url)
+			form_data.append('pagesdata', JSON.stringify(this.pagesData))
 			axios.post(ajaxurl + '?action=parse_run', form_data)
 				.then(function (response) {
 					console.log(response);
-					this.result = 'Готово'
-					// this.result = response.data
 				}.bind(this))
 				.catch(function (error) {
 					console.log(error);

@@ -22,3 +22,20 @@
   cursor: pointer; }
   .bmw_parser-admin button:hover {
     background: #88ad29; }
+
+.bmw_parser-admin table {
+  margin: 50px 0 0 0;
+  width: 100%;
+  border-collapse: collapse; }
+  .bmw_parser-admin table tr td {
+    padding: 5px 10px 5px 0; }
+    .bmw_parser-admin table tr td input {
+      width: 100%; }
+      .bmw_parser-admin table tr td input::-webkit-input-placeholder {
+        color: red; }
+      .bmw_parser-admin table tr td input:-moz-placeholder {
+        color: red; }
+      .bmw_parser-admin table tr td input::-moz-placeholder {
+        color: red; }
+      .bmw_parser-admin table tr td input:-ms-input-placeholder {
+        color: red; }
