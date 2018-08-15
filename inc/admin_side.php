@@ -99,16 +99,26 @@ function parse_run()
 		$pages_data = json_decode( stripslashes( $_POST['pagesdata'] ) );
 
 		foreach ( $pages_data as $page_data ) {
-			$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
-			// save_all_page_files($html);
-			$page_sctipts = get_page_sctipts($html);
+			if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) == $page_data->slugp ) {
+				$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
+				// save_all_page_files($html);
+				$page_sctipts = get_page_sctipts($html);
 
-			if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) == $page_data->slug ) {
-				return create_page($html, $page_data->slug, $page_data->title, $page_sctipts);
+				$parent_id = create_page($html, $page_data->slug, $page_data->title, $page_sctipts);
 			}
 		}
 
+		// foreach ( $pages_data as $page_data ) {
+		// 	if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) != $page_data->slugp ) {
+		// 		$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
+		// 		// save_all_page_files($html);
+		// 		$page_sctipts = get_page_sctipts($html);
+				
+		// 		create_page($html, $page_data->slug, $page_data->title, $page_sctipts, $parent_id);
+		// 	}
+		// }
 
+		echo $parent_id;
 		exit();
 	}
 	else {
@@ -182,7 +192,7 @@ function upgrade_files_url($html)
 }
 
 
-function create_page($html, $slug, $page_title, $page_sctipts)
+function create_page($html, $slug, $page_title, $page_sctipts, $parent_id = 0)
 {
 	global $wpdb;
 
@@ -195,6 +205,6 @@ function create_page($html, $slug, $page_title, $page_sctipts)
 	$post_content = upgrade_files_url($main_wrap->outertext);
 
 	// Mihaeu\HtmlFormatter::format($post_content)
-	$wpdb->insert( 'wp_posts', array('post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );
+	$wpdb->insert( 'wp_posts', array('post_parent' => $parent_id, 'post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );
 	return $wpdb->insert_id;
 }
