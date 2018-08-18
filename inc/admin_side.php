@@ -100,23 +100,23 @@ function parse_run()
 
 		foreach ( $pages_data as $page_data ) {
 			if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) == $page_data->slugp ) {
-				$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
-				// save_all_page_files($html);
+				$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slugp );
+				save_all_page_files($html);
 				$page_sctipts = get_page_sctipts($html);
 
 				$parent_id = create_page($html, $page_data->slug, $page_data->title, $page_sctipts);
 			}
 		}
-
-		// foreach ( $pages_data as $page_data ) {
-		// 	if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) != $page_data->slugp ) {
-		// 		$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slug );
-		// 		// save_all_page_files($html);
-		// 		$page_sctipts = get_page_sctipts($html);
+ 
+		foreach ( $pages_data as $page_data ) {
+			if ( pathinfo($_POST['url'], PATHINFO_BASENAME ) != $page_data->slugp ) {
+				$html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slugp );
+				save_all_page_files($html);
+				$page_sctipts = get_page_sctipts($html);
 				
-		// 		create_page($html, $page_data->slug, $page_data->title, $page_sctipts, $parent_id);
-		// 	}
-		// }
+				create_page($html, $page_data->slug, $page_data->title, $page_sctipts, $parent_id);
+			}
+		}
 
 		echo $parent_id;
 		exit();
