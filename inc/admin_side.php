@@ -114,7 +114,20 @@ function parse_run()
 				save_all_page_files($html);
 				$page_sctipts = get_page_sctipts($html);
 				
-				create_page($html, $page_data->slug, $page_data->title, $page_sctipts, $parent_id);
+				$technical_id = create_page($html, $page_data->slug, $page_data->title, $page_sctipts, $parent_id);
+
+				if ( strtolower($page_data->titlep) == strtolower('Технические характеристики') ) {
+					include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+					$technical_page_html = file_get_html( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$page_data->slugp );
+					$technical_page_items = $technical_page_html->find('.chose_chars_list', 0)->find('a');
+
+					foreach ($technical_page_items as $technical_page_item) {
+						$technical_html = file_get_contents( $url_parts_arr['scheme'].'://'.$url_parts_arr['host'].'/ru/'.$technical_page_item->href );
+						save_all_page_files($technical_html);
+						$technical_sctipts = get_page_sctipts($technical_html);
+						create_page($technical_html, $technical_page_item->href, $technical_page_item->innertext, $technical_sctipts, $technical_id);
+					}
+				}
 			}
 		}
 
