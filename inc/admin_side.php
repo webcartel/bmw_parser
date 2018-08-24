@@ -38,6 +38,7 @@ function bmw_parser_admin()
 	<input type="text" name="url" placeholder="URL модели" v-model="url">
 	<button @click="sendUrl()">Спарсить главную страницу модели</button>
 
+	<h2 v-if="ready">Готово!</h2>
 	<table v-if="pagesData != null">
 		<tr>
 			<td>Текст ссылки</td>
@@ -152,12 +153,12 @@ function save_all_page_files($html)
 		$image_url_arr = parse_url($image_url);
 		$path_arr = pathinfo($image_url_arr['path']);
 
-		if ( !file_exists(WCST_PARSER_WP_UPLOADS_DIR_PATH.$path_arr['dirname']) ) {
-			mkdir(WCST_PARSER_WP_UPLOADS_DIR_PATH.$path_arr['dirname'], 0777, true);
+		if ( !file_exists(WCST_PARSER_WP_UPLOADS_DIR_PATH.'/'.$path_arr['dirname']) ) {
+			mkdir(WCST_PARSER_WP_UPLOADS_DIR_PATH.'/'.$path_arr['dirname'], 0777, true);
 		}
 
-		if ( !file_exists(WCST_PARSER_WP_UPLOADS_DIR_PATH.$image_url_arr['path']) ) {
-			file_put_contents(WCST_PARSER_WP_UPLOADS_DIR_PATH.$image_url_arr['path'], file_get_contents($image_url));
+		if ( !file_exists(WCST_PARSER_WP_UPLOADS_DIR_PATH.'/'.$image_url_arr['path']) ) {
+			file_put_contents(WCST_PARSER_WP_UPLOADS_DIR_PATH.'/'.$image_url_arr['path'], file_get_contents($image_url));
 		}
 	}
 
@@ -205,6 +206,28 @@ function upgrade_files_url($html)
 }
 
 
+function upgrade_hrefs($html)
+{
+	include_once(__DIR__.'/simplehtmldom/simple_html_dom.php');
+	$html = str_get_html($html);
+	$links = $html->find('a');
+
+	$pages_data = json_decode( stripslashes( $_POST['pagesdata'] ) );
+
+	foreach ($links as $link) {
+		foreach ($pages_data as $page_data) {
+			if ( $page_data->slugp == $link->href ) {
+				// $html = preg_replace('~(<a[^>]*href=")('.$page_data->slugp.')("[^>]*>)~Uis' , '${1}'.$page_data->slug.'${3}', $html);
+				// $html = preg_replace('~"'.$page_data->slugp.'"~Uis', '"'.$page_data->slug.'"', $html);
+				$html = str_replace('\''.$page_data->slugp.'\'', '"[bmw_page_url]/'.$page_data->slug.'"', $html);
+			}
+		}
+	}
+
+	return $html;
+}
+
+
 function create_page($html, $slug, $page_title, $page_sctipts, $parent_id = 0)
 {
 	global $wpdb;
@@ -216,6 +239,7 @@ function create_page($html, $slug, $page_title, $page_sctipts, $parent_id = 0)
 	$html = str_get_html($html);
 	$main_wrap = $html->find(".main-wrap", 0);
 	$post_content = upgrade_files_url($main_wrap->outertext);
+	$post_content = upgrade_hrefs($post_content);
 
 	// Mihaeu\HtmlFormatter::format($post_content)
 	$wpdb->insert( 'wp_posts', array('post_parent' => $parent_id, 'post_title' => $page_title, 'post_name' => $slug, 'post_type' => 'page', 'post_content' => Mihaeu\HtmlFormatter::format($post_content).$page_sctipts) );

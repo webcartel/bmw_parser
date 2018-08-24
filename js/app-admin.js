@@ -4,6 +4,7 @@ var bmw_parser_Admin = new Vue({
 	data: {
 		url: '',
 		pagesData: null,
+		ready: false,
 	},
 
 	mounted: function() {
@@ -31,6 +32,7 @@ var bmw_parser_Admin = new Vue({
 			axios.post(ajaxurl + '?action=parse_run', form_data)
 				.then(function (response) {
 					console.log(response);
+					this.ready = true
 				}.bind(this))
 				.catch(function (error) {
 					console.log(error);
